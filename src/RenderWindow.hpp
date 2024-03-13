@@ -13,6 +13,7 @@ class RenderWindow
         void cleanUp();
         void clear();
         void render(Entity &p_entity);
+        void renderT(Entity &p_entity);
         void display();
     private:
         SDL_Window *window;

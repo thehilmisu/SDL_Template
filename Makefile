@@ -19,3 +19,4 @@ CC_SDL=-lmingw32 -lSDL2 -lSDL2main -lSDL2_image
 
 all:
 	$(CC) $(S_FILES) -o $(EXEC) $(CC_SDL)
+# $(CC) $(S_FILES) -o $(EXEC) $(CC_SDL) && start build/SDLGame.exe
