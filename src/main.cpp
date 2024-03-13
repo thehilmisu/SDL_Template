@@ -5,11 +5,35 @@
 #include <SDL2/SDL_image.h>
 
 #include "RenderWindow.hpp"
+#include "Entity.hpp"
+#include "Utils.hpp"
+#include <memory>
+#include <vector>
 
-const int WIDTH = 800, HEIGHT = 600;
+const int WIDTH = 1280, HEIGHT = 720;
+
+std::vector<std::unique_ptr<Entity>> mapItems;
 
 int main( int argc, char *argv[] )
 {
+
+    const int mapSize = 5;
+    const char map[mapSize][mapSize] = {
+        {'1', '0', '1', '0', '1'},
+        {'0', '1', '0', '1', '0'},
+        {'1', '0', '1', '0', '1'},
+        {'0', '1', '0', '1', '0'},
+        {'1', '0', '1', '0', '1'}
+    };
+ 
+    // Print the map
+    for (int i = 0; i < mapSize; ++i) 
+    {
+        for (int j = 0; j < mapSize; ++j) {
+            std::cout << map[i][j] << ' ';
+        }
+        std::cout << std::endl;
+    }
 
     if(SDL_Init(SDL_INIT_VIDEO) > 0)
     {
@@ -21,21 +45,70 @@ int main( int argc, char *argv[] )
         std::cout << "IMG INIT has failed" << SDL_GetError() << std::endl;
     }
 
-    RenderWindow window("GAME v1.0", 1280, 720);
+    RenderWindow window("GAME v1.0", WIDTH, HEIGHT);
+    
+    SDL_Texture *grassTexture = window.loadTexture("../res/gfx/ground_grass_1.png");
+    SDL_Texture *knight = window.loadTexture("../res/gfx/hulking_knight.png");
+
+    
+    for (int i = 0; i < mapSize; ++i) 
+    {
+        for (int j = 0; j < mapSize; ++j) {
+            if(map[i][j] == '1')
+            {
+                mapItems.push_back(std::make_unique<Entity>(Entity(Vector2f(i*32, j*32), grassTexture)));
+            }                
+            else
+            {
+                mapItems.push_back(std::make_unique<Entity>(Entity(Vector2f(i*32, j*32), knight)));
+            }
+        }
+    }
 
     bool gameRunning = true;
 
     SDL_Event event;
 
+    const float timeStep = 0.01f;
+    float accumulator = 0.0f;
+    float currentTime = Utils::hireTimeInSeconds();
+
     while(gameRunning)
     {
-        while (SDL_PollEvent(&event))
+        int startTicks = SDL_GetTicks();
+        float newTime = Utils::hireTimeInSeconds();
+        float frameTime = newTime - currentTime;
+
+        currentTime = newTime;
+
+        accumulator += frameTime;
+
+        while(accumulator >= timeStep)
         {
-            if(event.type == SDL_QUIT)
+            while (SDL_PollEvent(&event))
             {
-                gameRunning = false;
+                if(event.type == SDL_QUIT)
+                {
+                    gameRunning = false;
+                }
             }
+
+            accumulator -= timeStep;
         }
+
+        const float alpha = accumulator / timeStep;
+
+        window.clear();
+
+        for(auto &item : mapItems)
+            window.render(*item);
+
+
+        window.display();
+
+        int frameTicks = SDL_GetTicks() - startTicks;
+        if(frameTicks < 1000 / window.getRefreshRate())
+            SDL_Delay(1000 / window.getRefreshRate() - frameTicks);
     }
 
     window.cleanUp();
