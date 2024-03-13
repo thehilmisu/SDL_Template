@@ -23,7 +23,7 @@ int main( int argc, char *argv[] )
         {'0', '1', '0', '1', '0'},
         {'1', '0', '1', '0', '1'},
         {'0', '1', '0', '1', '0'},
-        {'1', '0', '1', '0', '1'}
+        {'1', '0', '#', '0', '1'}
     };
  
     // Print the map
@@ -47,7 +47,8 @@ int main( int argc, char *argv[] )
 
     RenderWindow window("GAME v1.0", WIDTH, HEIGHT);
     
-    SDL_Texture *grassTexture = window.loadTexture("../res/gfx/ground_grass_1.png");
+    SDL_Texture *grassTexture = window.loadTexture("../res/gfx/ground_grass1.png");
+    SDL_Texture *cobra = window.loadTexture("../res/gfx/cobra.png");
     SDL_Texture *knight = window.loadTexture("../res/gfx/hulking_knight.png");
 
     
@@ -56,14 +57,20 @@ int main( int argc, char *argv[] )
         for (int j = 0; j < mapSize; ++j) {
             if(map[i][j] == '1')
             {
-                mapItems.push_back(std::make_unique<Entity>(Entity(Vector2f(i*32, j*32), grassTexture)));
+                mapItems.push_back(std::make_unique<Entity>(Entity(Vector2f(i*32, j*32), Vector2f(32,32), grassTexture)));
             }                
+            else if(map[i][j] == '0')
+            {
+                mapItems.push_back(std::make_unique<Entity>(Entity(Vector2f(i*32, j*32), Vector2f(32,32), knight)));
+            }
             else
             {
-                mapItems.push_back(std::make_unique<Entity>(Entity(Vector2f(i*32, j*32), knight)));
+                mapItems.push_back(std::make_unique<Entity>(Entity(Vector2f(i*64, j*176), Vector2f(64,176), cobra) ));
             }
         }
     }
+
+    Entity player(Vector2f(10, 0),Vector2f(64,176), cobra);
 
     bool gameRunning = true;
 
@@ -100,8 +107,9 @@ int main( int argc, char *argv[] )
 
         window.clear();
 
-        for(auto &item : mapItems)
-            window.render(*item);
+        window.render(player);
+        // for(auto &item : mapItems)
+        //     window.render(*item);
 
 
         window.display();
